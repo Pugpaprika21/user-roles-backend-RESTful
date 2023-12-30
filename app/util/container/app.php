@@ -7,19 +7,19 @@ $container->set('env', function () use ($env) {
 });
 
 // Set container Redbean
-$container->set('rb', function () use ($env) {
+$container->set('rb-setup', function () use ($env) {
     if (!empty($env['DB_USERNAME'])) {
-        $rb = new R();
-        $rb->setup($env['DB_CONNECT_DNS'], $env['DB_USERNAME'], '');
-        $rb->debug(false);
-        $rb->freeze(false);
-        return $rb;
+        R::setup($env['DB_CONNECT_DNS'], $env['DB_USERNAME'], '');
+        R::debug(false);
+        R::freeze(false);
+        R::ext('xdispense', fn ($type) => R::getRedBean()->dispense($type));
+        return;
     }
     throw new Exception("Error Processing Redbean ...", 1);
 });
 
 // Set container PDO
-$container->set('pdo', function () use ($env) {
+$container->set('pdo', function () use ($env) { 
     if (!empty($env)) {
         try {
             $conn = new PDO($env['DB_CONNECT_DNS'], $env['DB_USERNAME'], $env['DB_PASSWORD']);
@@ -33,9 +33,7 @@ $container->set('pdo', function () use ($env) {
     throw new Exception("Error Processing PDO ...", 1);
 });
 
-// Set Resource Path 
-// http://localhost:8080/resource/public/?folder=upload&filename=clouds.png
-
-$container->set('resource_path', function () {
+// Set Resource Path
+$container->set('resource_path', function () { 
     return __DIR__ . '../../../../resource/';
 });

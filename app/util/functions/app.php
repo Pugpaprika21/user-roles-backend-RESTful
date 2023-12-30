@@ -55,10 +55,9 @@ if (!function_exists('esc')) {
 
     /**
      * @param string $data
-     * @param boolean $cut_underscores
      * @return string
      */
-    function esc(string $data, bool $cut_underscores = false): string
+    function esc(string $data): string
     {
         if (!is_string($data)) {
             $data = (string)$data;
@@ -66,7 +65,7 @@ if (!function_exists('esc')) {
         $data = trim($data);
         $data = stripslashes($data);
         $data = htmlspecialchars($data, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        return ($cut_underscores) ? str_replace('_', '', $data) : $data;
+        return $data;
     }
 }
 

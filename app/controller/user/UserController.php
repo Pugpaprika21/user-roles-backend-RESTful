@@ -6,6 +6,7 @@ use DateTime;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Container\ContainerInterface;
+use R;
 
 class UserController
 {
@@ -16,37 +17,38 @@ class UserController
 
     public function index(Request $request, Response $response): Response
     {
-        $db = $this->container->get('rb');
+        $this->container->get('rb-setup');
 
         $params = $request->getQueryParams();
 
         $limit = !empty($params['page']) ? esc($params['page']) : 1;
-        $offset = !empty($params['limit']) ? esc($params['limit']) : $db->count('users');
+        $offset = !empty($params['limit']) ? esc($params['limit']) : R::count('users');
 
         $userList = [];
-        if ($users = $db->findAll("users", "ORDER BY created_at LIMIT ?, ?", [$limit, $offset])) {
+        $users = R::findAll("users", "ORDER BY created_at LIMIT ?, ?", [$limit, $offset]);
+        if (!empty($users)) {
             foreach ($users as $user) {
-                $fileStos = $db->exportAll($db->findOne(esc('file_storage_system', true), 'ref_id = ? AND ref_field = ?', [$user->id, 'profile']))[0];
+                $fileStos = R::findOne('file_storage_system', 'ref_id = ? AND ref_field = ?', [$user->id, 'profile']);
                 $userList[] = [
                     'Id' => (int)$user['id'],
                     'Username' => $user['username'],
                     'Email' => $user['email'],
-                    'Profile' => !empty($fileStos) ? public_path("folder=upload&filename={$fileStos['file_name']}") : "",
+                    'Profile' => !empty($fileStos) ? public_path("folder=upload&filename={$fileStos['file_name']}") : '',
                     'Roles' => [],
                     'CreatedAt' => (new DateTime($user['created_at']))->format('d-m-Y'),
                 ];
             }
 
-            $db->close();
+            R::close();
             return json($response, ['users' => $userList, 'rows' => count($userList)]);
         }
-
         return json($response, ['users' => []]);
     }
 
     public function create(Request $request, Response $response): Response
     {
-        $db = $this->container->get('rb');
+        $this->container->get('rb-setup');
+
         $directory = $this->container->get('resource_path');
 
         $body = $request->getParsedBody();
@@ -55,11 +57,11 @@ class UserController
         $username = esc($body['username']);
         $password = esc($body['password']);
 
-        if ($db->findOne('users', 'username = ? OR password = ?', [$username, $password])) {
+        if (R::findOne('users', 'username = ? OR password = ?', [$username, $password])) {
             return json($response, ['msg' => 'username or password exiting..']);
         }
 
-        $user = $db->dispense('users');
+        $user = R::xdispense('users');
         if ($user->isEmpty()) {
             $user->username = $username;
             $user->password = password_hash($password, PASSWORD_BCRYPT, ['cost' => 10]);
@@ -72,19 +74,18 @@ class UserController
             $user->remember_token = '';
             $user->created_at = date('Y-m-d');
             $user->updated_at = date('Y-m-d');
-            $id = $db->store($user);
-            $db->close();
+            $id = R::store($user);
+            R::close();
 
             if (!empty($uploadedFiles['files'])) {
                 $uploadedFile = $uploadedFiles['files'];
                 if ($uploadedFile->getError() === UPLOAD_ERR_OK) {
-
                     $fSize = $uploadedFile->getSize();
                     $fMd = $uploadedFile->getClientMediaType();
                     $fExt = pathinfo(esc($uploadedFile->getClientFilename()), PATHINFO_EXTENSION);
                     $filename = fileUploaded($directory . "public/upload/", $uploadedFile);
 
-                    $fileSto = $db->dispense(esc('file_storage_system', true));
+                    $fileSto = R::xdispense('file_storage_system');
                     $fileSto->file_name = $filename;
                     $fileSto->file_size = $fSize;
                     $fileSto->file_type = $fMd;
@@ -95,8 +96,8 @@ class UserController
                     $fileSto->ref_field = 'profile';
                     $fileSto->created_at = date('Y-m-d');
                     $fileSto->updated_at = date('Y-m-d');
-                    $db->store($fileSto);
-                    $db->close();
+                    R::store($fileSto);
+                    R::close();
                 }
             }
 
@@ -104,5 +105,34 @@ class UserController
         }
 
         return json($response, ['msg' => 'Create User Error.']);
+    }
+
+    public function show(Request $request, Response $response, array $agre): Response
+    {
+        $this->container->get('rb-setup');
+
+        if (empty($agre['id'])) {
+            return json($response, ['msg' => 'Messing User Id.']);
+        }
+
+        $id = esc($agre['id']);
+        $user = R::findOne('users', 'id = ?', [$id]);
+        R::close();
+        return json($response, ['msg' => 'Messing User Id.', 'data' => $user]);
+    }
+
+    public function delete(Request $request, Response $response, array $agre): Response
+    {
+        $this->container->get('rb-setup');
+
+        $id = esc($agre['id']);
+        $user = R::findOne('users', 'id = ?', [$id]);
+        if (!$user) {
+            return json($response, ['msg' => 'User Not Found..']);
+        }
+
+        R::trash('users', $id);
+        R::close();
+        return json($response, ['msg' => 'Delete User Success']);
     }
 }
