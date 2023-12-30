@@ -1,0 +1,17 @@
+{% set titleContent %}
+{{ name }}
+{% endset %}
+
+{{ include('views/layouts/header.twig', { 'titleContent': titleContent }, sandboxed = true) }}
+
+{% set bodyContent %}
+    <h1>Hello Slim Framework</h1>
+{% endset %}
+
+{{ include('views/layouts/content.twig', { 'titleContent': titleContent, 'bodyContent': bodyContent }, sandboxed = true) }}
+
+{% set footerContent %}
+{{ name }}
+{% endset %}
+
+{{ include('views/layouts/footer.twig', { 'footerContent': footerContent }, sandboxed = true) }}
