@@ -17,7 +17,7 @@ class UserController
 
     public function index(Request $request, Response $response): Response
     {
-        $this->container->get('rb-setup');
+        $this->container->get(R::class);
 
         $params = $request->getQueryParams();
 
@@ -33,7 +33,7 @@ class UserController
                     'Id' => (int)$user['id'],
                     'Username' => $user['username'],
                     'Email' => $user['email'],
-                    'Profile' => !empty($fileStos) ? public_path("folder=upload&filename={$fileStos['file_name']}") : '',
+                    'Profile' => !empty($fileStos) ? public_path("folder=upload&filename={$fileStos['file_name']}") : null,
                     'Roles' => [],
                     'CreatedAt' => (new DateTime($user['created_at']))->format('d-m-Y'),
                 ];
@@ -47,7 +47,7 @@ class UserController
 
     public function create(Request $request, Response $response): Response
     {
-        $this->container->get('rb-setup');
+        $this->container->get(R::class);
 
         $directory = $this->container->get('resource_path');
 
@@ -109,7 +109,7 @@ class UserController
 
     public function show(Request $request, Response $response, array $agre): Response
     {
-        $this->container->get('rb-setup');
+        $this->container->get(R::class);
 
         if (empty($agre['id'])) {
             return json($response, ['msg' => 'Messing User Id.']);
@@ -123,7 +123,7 @@ class UserController
 
     public function delete(Request $request, Response $response, array $agre): Response
     {
-        $this->container->get('rb-setup');
+        $this->container->get(R::class);
 
         $id = esc($agre['id']);
         $user = R::findOne('users', 'id = ?', [$id]);

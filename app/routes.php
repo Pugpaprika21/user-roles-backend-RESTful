@@ -9,6 +9,9 @@ use Slim\App;
 return function (App $app) {
     $app->options('/{routes:.*}', fn (Request $request, Response $response) => $response);
 
-    require __DIR__ . '../../routes/@@resource.php';
-    require __DIR__ . '../../routes/user.php';
+    define('ROUTES_PATH', __DIR__ . '../../routes/');
+
+    require ROUTES_PATH . '@@resource.php';
+    require ROUTES_PATH . 'user.php';
+    require ROUTES_PATH . 'master.php';
 };

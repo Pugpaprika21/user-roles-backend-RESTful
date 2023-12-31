@@ -7,7 +7,7 @@ $container->set('env', function () use ($env) {
 });
 
 // Set container Redbean
-$container->set('rb-setup', function () use ($env) {
+$container->set(R::class, function () use ($env) {
     if (!empty($env['DB_USERNAME'])) {
         R::setup($env['DB_CONNECT_DNS'], $env['DB_USERNAME'], '');
         R::debug(false);
@@ -19,7 +19,7 @@ $container->set('rb-setup', function () use ($env) {
 });
 
 // Set container PDO
-$container->set('pdo', function () use ($env) { 
+$container->set(PDO::class, function () use ($env) { 
     if (!empty($env)) {
         try {
             $conn = new PDO($env['DB_CONNECT_DNS'], $env['DB_USERNAME'], $env['DB_PASSWORD']);
