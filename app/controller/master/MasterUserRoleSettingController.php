@@ -32,14 +32,26 @@ class MasterUserRoleSettingController
 
         $body = $request->getParsedBody();
 
-        $roleList = [];
-        $roleSettings = $body['role_settings'] ?? [];
-        foreach ($roleSettings as $role) {
-            $mRole = R::findOne('master_user_roles', 'id = ?', [$role['roleId']]);
-            $roleList[] = $mRole;
-        }
+        $userId = esc($body['userId']);
+        $roleSettings = $body['roleSettings'] ?? [];
+        // foreach ($roleSettings as $roleId) {
+        //     $mRole = R::xdispense('master_user_roles_settings');
+        //     $mRole->user_id = $userId;
+        //     $mRole->ref_id = $roleId;
+        //     $mRole->ref_table = 'master_user_roles';
+        //     $mRole->ref_field = 'id';
+        //     $mRole->created_at = date('Y-m-d');
+        //     $mRole->updated_at = date('Y-m-d');
+        //     R::store($mRole);
+        // }
         R::close();
-        return json($response, ['msg' => $roleList]);
+        return json($response, ['msg' => 'Create Roles Success.', $body], 201);
+        
+        /* 
+        RoleSettings: 
+            DoCheck : ['1', '5']
+            UnCheck :  ['3', '2']     
+        */
     }
 
     public function delete(Request $request, Response $response): Response
@@ -58,17 +70,3 @@ class MasterUserRoleSettingController
         return json($response, ['msg' => $roleList]);
     }
 }
-
-/* 
-    {
-        "userId": 10,
-        "role_settings": [
-            {
-                "roleId": 1
-            },
-            {
-                "roleId": 2
-            }
-        ]
-    }
-*/

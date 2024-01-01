@@ -118,7 +118,7 @@ class UserController
         $id = esc($agre['id']);
         $user = R::findOne('users', 'id = ?', [$id]);
         R::close();
-        return json($response, ['msg' => 'Messing User Id.', 'data' => $user]);
+        return json($response, ['msg' => '', 'user' => $user]);
     }
 
     public function delete(Request $request, Response $response, array $agre): Response
